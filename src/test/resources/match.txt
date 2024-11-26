@@ -1,0 +1,5 @@
+Lorem require '/path1'
+require '/path2'
+require    '/path1' lorem.
+require'/path3'
+require '/path4' require '/path5'
