@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
 
 /**
  * Utility class for reading file dependencies for all files in the given directory.
- * The class cannot be instantiated. Use method {@link #getDependencyMap(String) getDependencyMap()}
+ * The class cannot be instantiated. Use method {@link #getDependencyMap(String, boolean)} getDependencyMap()}
  * to utilize the class functionality.
  */
 public class DependencyReader {
@@ -29,9 +30,12 @@ public class DependencyReader {
      * If a file doesn't have any requirement, it presents in the map with an empty set as a value.
      *
      * @param rootPath path to a root directory
+     * @param invert defines the direction of dependency.<br>
+     *               <i>true</i>: the result map contains pairs "file -> referencing files"<br>
+     *               <i>false</i>: the result map contains pairs "file -> required files"
      * @return Map with required file paths for each file in the directory
      */
-    public static Map<String, Set<String>> getDependencyMap(String rootPath) {
+    public static Map<String, Set<String>> getDependencyMap(String rootPath, boolean invert) {
         if (rootPath == null) {
             throw new IllegalArgumentException("Root path value cannot be null.");
         }
@@ -40,7 +44,7 @@ public class DependencyReader {
             throw new IllegalArgumentException(String.format("%s does not exist or it is not a directory.", rootPath));
         }
         Map<String, Set<String>> result = new HashMap<>();
-        fillFileRequirements(rootFile, result, rootPath);
+        fillFileRequirements(rootFile, result, rootPath, invert);
         return result;
     }
 
@@ -51,11 +55,12 @@ public class DependencyReader {
      * @param file          current file path
      * @param dependencyMap the map instance being filled
      * @param rootPath      path to the root directory for building an absolute path for each dependency
+     * @param invert        dependency direction
      */
-    private static void fillFileRequirements(File file, Map<String, Set<String>> dependencyMap, String rootPath) {
+    private static void fillFileRequirements(File file, Map<String, Set<String>> dependencyMap, String rootPath, boolean invert) {
         if (file.isDirectory()) {
             for (File child: file.listFiles()) {
-                fillFileRequirements(child, dependencyMap, rootPath);
+                fillFileRequirements(child, dependencyMap, rootPath, invert);
             }
         }
         if (file.isFile() && file.canRead()) {
@@ -64,7 +69,13 @@ public class DependencyReader {
                             .filter(File::isFile)
                             .map(File::getAbsolutePath)
                             .collect(Collectors.toSet());
-            dependencyMap.put(file.getAbsolutePath(), dependencies);
+            if (invert) {
+                for (String dep: dependencies) {
+                    dependencyMap.computeIfAbsent(dep, (k) -> new HashSet<String>()).add(file.getAbsolutePath());
+                }
+            } else {
+                dependencyMap.put(file.getAbsolutePath(), dependencies);
+            }
         }
     }
 
