@@ -1,5 +1,6 @@
 package org.natalya_me.algorithm;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +18,26 @@ import java.util.Set;
 public class DirectedGraph {
 
     private final Map<String, Node> nodes = new HashMap<>();
+
+    /**
+     * Creates a directed graph using the given adjacency lists of ids.
+     * Note that nodes for EACH id in the map are created, not only key ids.
+     *
+     * @param adjacencyList Map of node ids, there key is a source node id and value is a collection of all target ids for the key.
+     * @return an instance of {@link org.natalya_me.algorithm.DirectedGraph}
+     * @param <T> container type
+     */
+    public static <T extends Collection<String>> DirectedGraph createFromAdjacencyList(Map<String, T> adjacencyList) {
+        DirectedGraph graph = new DirectedGraph();
+        for (Map.Entry<String, T> e: adjacencyList.entrySet()) {
+            Node from = graph.addOrFindNode(e.getKey());
+            for (String toId: e.getValue()) {
+                Node to = graph.addOrFindNode(toId);
+                graph.addArc(from, to);
+            }
+        }
+        return graph;
+    }
 
     public DirectedGraph() {
 
@@ -109,6 +130,13 @@ public class DirectedGraph {
         return Optional.ofNullable(nodes.get(idFrom))
                 .map(n -> n.hasReferenceTo(nodes.get(idTo)))
                 .orElse(false);
+    }
+
+    /**
+     * Checks if there are no nodes in the graph.
+     */
+    public boolean isEmpty() {
+        return nodes.isEmpty();
     }
 
     /**

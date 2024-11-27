@@ -1,11 +1,13 @@
-package org.natalya_me;
+package org.natalya_me.algorithm;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.natalya_me.algorithm.DirectedGraph;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -148,9 +150,11 @@ public class TestDirectedGraph {
         g.addNode("1");
         g.addNode("2");
         g.addArc("1", "2");
+        DirectedGraph.Node node = g.findNode("2");
         assertTrue(g.removeNode("2"));
         assertFalse(g.hasNode("2"));
         assertFalse(g.hasArc("1", "2"));
+        assertFalse(g.findNode("1").hasReferenceTo(node));
     }
 
     @Test
@@ -158,9 +162,11 @@ public class TestDirectedGraph {
         g.addNode("1");
         g.addNode("2");
         g.addArc("1", "2");
+        DirectedGraph.Node node = g.findNode("1");
         assertTrue(g.removeNode("1"));
         assertFalse(g.hasNode("1"));
         assertFalse(g.hasArc("1", "2"));
+        assertFalse(g.findNode("2").hasReferenceFrom(node));
     }
 
     @Test
@@ -183,6 +189,23 @@ public class TestDirectedGraph {
         g.addArc("3", "4");
         assertFalse(gCopy.hasNode("4"));
         assertFalse(gCopy.hasArc("3", "4"));
+    }
+
+    @Test
+    void testCreateFromAdjacencyList() {
+        List<String> ids = Arrays.asList("1", "2", "3");
+        Map<String, List<String>> al = new HashMap<>();
+        al.put("1", Collections.singletonList("2"));
+        al.put("2", Collections.emptyList());
+        al.put("3", Arrays.asList("1", "2"));
+        DirectedGraph graph = DirectedGraph.createFromAdjacencyList(al);
+        for (String id: ids) {
+            assertTrue(graph.hasNode(id));
+            for (String toId: ids) {
+                assertEquals(al.get(id).contains(toId), graph.hasArc(id, toId));
+            }
+        }
+
     }
 
 }
