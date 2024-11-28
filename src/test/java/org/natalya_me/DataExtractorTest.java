@@ -14,14 +14,16 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DataExtractorTest {
 
     private final DataExtractor extractor = new DataExtractor("require *' *(.*?) *'", this::extract);
-    private static final File RESOURCES = new File("src/test/resources");
+    private static final File RESOURCES = new File("src/test/resources/data_extractor_test");
 
     @Test
     void testFindAllWhenSourceNull() {
-        assertAll(
-                () -> assertDoesNotThrow(() -> extractor.findAll(null)),
-                () -> assertEquals(Collections.emptyList(), extractor.findAll(null))
-        );
+        assertThrowsExactly(IllegalArgumentException.class, () -> extractor.findAll(null));
+    }
+
+    @Test
+    void testFindAllWhenSourceDoesNotExist() {
+        assertThrowsExactly(IllegalArgumentException.class, () -> extractor.findAll(new File("no_such_directory")));
     }
 
     @Test

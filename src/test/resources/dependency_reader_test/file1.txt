@@ -1,0 +1,2 @@
+require 'subfolder/file3.txt'
+require 'subfolder/file2.txt'

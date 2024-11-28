@@ -27,7 +27,7 @@ public class DependencyReader {
 
     /**
      * Traverse the given path and creates a map with required file paths for each file in the directory.
-     * If a file doesn't have any requirement, it presents in the map with an empty set as a value.
+     * It is guaranteed that each file path is present in the result map as a key.
      *
      * @param rootPath path to a root directory
      * @param invert defines the direction of dependency.<br>
@@ -62,6 +62,7 @@ public class DependencyReader {
             for (File child: file.listFiles()) {
                 fillFileRequirements(child, dependencyMap, rootPath, invert);
             }
+            return;
         }
         if (file.isFile() && file.canRead()) {
             Set<String> dependencies = DATA_EXTRACTOR.findAll(file).stream()
@@ -69,12 +70,14 @@ public class DependencyReader {
                             .filter(File::isFile)
                             .map(File::getAbsolutePath)
                             .collect(Collectors.toSet());
+            String filePath = file.getAbsolutePath();
             if (invert) {
+                dependencyMap.putIfAbsent(filePath, new HashSet<>());
                 for (String dep: dependencies) {
-                    dependencyMap.computeIfAbsent(dep, (k) -> new HashSet<String>()).add(file.getAbsolutePath());
+                    dependencyMap.computeIfAbsent(dep, (k) -> new HashSet<>()).add(filePath);
                 }
             } else {
-                dependencyMap.put(file.getAbsolutePath(), dependencies);
+                dependencyMap.put(filePath, dependencies);
             }
         }
     }

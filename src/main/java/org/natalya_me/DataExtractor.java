@@ -43,8 +43,7 @@ public class DataExtractor {
      */
     public List<String> findAll(File file) {
         if (file == null || !file.isFile()) {
-            System.err.println("File path is incorrect: " + Optional.ofNullable(file).map(File::getPath).orElse(null));
-            return Collections.emptyList();
+            throw new IllegalArgumentException("File path is incorrect: " + Optional.ofNullable(file).map(File::getPath).orElse(null));
         }
 
         try (Scanner scanner = new Scanner(file)) {
