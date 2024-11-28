@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * A class of a directed graph. Cycles are allowed.
@@ -86,9 +88,11 @@ public class DirectedGraph {
         if (node != null) {
             for (Node from: node.getReferenceFromIterable()) {
                 from.removeReferenceTo(node);
+                node.removeReferenceFrom(from);
             }
             for (Node to: node.getReferenceToIterable()) {
                 to.removeReferenceFrom(node);
+                node.removeReferenceTo(to);
             }
             return nodes.remove(id) == node;
         }
@@ -140,6 +144,13 @@ public class DirectedGraph {
     }
 
     /**
+     * @return number of nodes
+     */
+    public int size() {
+        return nodes.size();
+    }
+
+    /**
      * Creates a new instance of {@link DirectedGraph} with the same set of nodes and arcs as this graph.
      * New graph doesn't depend on this one because it doesn't share any mutable object with it.
      *
@@ -167,6 +178,17 @@ public class DirectedGraph {
         return nodes.get(id);
     }
 
+    /**
+     * Returns set of nodes which correspond the filter.
+     * If filter is null, all nodes are returned.
+     */
+    protected Set<Node> getNodes(Predicate<Node> filter) {
+        if (filter == null) return new HashSet<>(nodes.values());
+        return nodes.values().stream()
+                .filter(filter)
+                .collect(Collectors.toSet());
+    }
+
     private boolean addArc(Node from, Node to) {
         if (from.hasReferenceTo(to)) return false;
         return from.addReferenceTo(to) && to.addReferenceFrom(from);
@@ -181,7 +203,7 @@ public class DirectedGraph {
      * <p>
      * This class is not thread safe.
      */
-    protected static class Node {
+    public static class Node {
 
         private final String id;
         private Set<Node> referenceFrom = Collections.emptySet();
@@ -200,7 +222,7 @@ public class DirectedGraph {
          * @param o source node
          * @return true if current object is referenced by o
          */
-        public boolean hasReferenceFrom(Node o) {
+        protected boolean hasReferenceFrom(Node o) {
             return referenceFrom.contains(o);
         }
 
@@ -210,7 +232,7 @@ public class DirectedGraph {
          * @param o target node
          * @return  true if current object is referencing o
          */
-        public boolean hasReferenceTo(Node o) {
+        protected boolean hasReferenceTo(Node o) {
             return referenceTo.contains(o);
         }
 
@@ -251,6 +273,20 @@ public class DirectedGraph {
          */
         public Iterable<Node> getReferenceToIterable() {
             return () -> referenceTo.iterator();
+        }
+
+        /**
+         * @return a copy of referenceFrom
+         */
+        protected Set<Node> getReferenceFromCopy() {
+            return new HashSet<>(referenceFrom);
+        }
+
+        /**
+         * @return a copy of referenceTo
+         */
+        protected Set<Node> getReferenceToCopy() {
+            return new HashSet<>(referenceTo);
         }
 
         /**

@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
  *  Note that pattern is applied within a single line.
  *  <p>
  *  Once created, an instance of the class can be used multiple times on different sources.
- *  Thread safe.
  */
 public class DataExtractor {
 
@@ -59,9 +58,7 @@ public class DataExtractor {
             }
             return result;
         } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
+            throw new IllegalArgumentException("Not correct file path was provided: " + file.getPath());
         }
-        return Collections.emptyList();
     }
-
 }
